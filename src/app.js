@@ -1,40 +1,38 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const productFsRouter = require('./routes/file_routes/products.route');
-const cartFsRouter = require('./routes/file_routes/carts.route');
-const productRoutes = require('./routes/db_routes/products.route');
-const cartRoutes = require('./routes/db_routes/carts.route');
-const multer = require('./utils');
+// /** ★━━━━━━━━━━━★ Importa Configuraciones ★━━━━━━━━━━━★ */
 
-//Declarando Express para usar sus funciones.
-const app = express();
+const app = require("./config/express.config");
+const path = require('path');
+const handlebars = require("./config/handlebars.config");
+const connectMongoDB = require("./config/db.config");
 
-//Middlewares
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// /** ★━━━━━━━━━━━★ Configurando Express ★━━━━━━━━━━━★ */
 
-/** ★━━━━━━━━━━━★ routes ★━━━━━━━━━━━★ */
-// con FileSystem
-app.use('/fs/products', productFsRouter);
-app.use('/fs/carts', cartFsRouter);
-// con MongoDB
-app.use('/api/products', productRoutes);
-app.use('/api/carts', cartRoutes);
+app.engine('handlebars', handlebars.engine);
+app.set("view engine", "handlebars");
+app.set("views", path.join(__dirname, "views/"));
 
+// /** ★━━━━━━━━━━━★ Importa las rutas ★━━━━━━━━━━━★ */
 
-const port = 8080; //todo pasar a .env
+const productFsRouter = require("./routes/file_routes/products.route");
+const cartFsRouter = require("./routes/file_routes/carts.route");
+const productRoutes = require("./routes/db_routes/products.route");
+const cartRoutes = require("./routes/db_routes/carts.route");
+const viewsRouter = require("./routes/views.route");
+
+// /** ★━━━━━━━━━━━★ Configurando las rutas ★━━━━━━━━━━━★ */
+
+app.use("/fs/products", productFsRouter);
+app.use("/fs/carts", cartFsRouter);
+app.use("/api/products", productRoutes);
+app.use("/api/carts", cartRoutes);
+app.use("/", viewsRouter);
+
+// /** ★━━━━━━━━━━━★ Iniciando el servidor ★━━━━━━━━━━━★ */
+
+const port = 8080;
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+  console.log(`Server running on port ${port}`);
 });
 
-const connectMongoDB = async ()=>{
-    const stringConnection = 'mongodb://127.0.0.1:27017/ecommerce?retryWrites=true&w=majority' //todo pasar a .env
-    try {
-        await mongoose.connect(stringConnection);
-        console.log("Conectado con exito a MongoDB usando Moongose.");
-    } catch (error) {
-        console.error("No se pudo conectar a la BD usando Moongose: " + error);
-        process.exit();
-    }
-};
+// /** ★━━━━━━━━━━━★ Conecta Mongo DB ★━━━━━━━━━━━★ */
 connectMongoDB();
